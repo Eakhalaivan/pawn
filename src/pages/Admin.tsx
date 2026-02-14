@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard, Database, Users, FileText, Building2,
   DollarSign, BarChart3, Settings, TrendingUp,
-  Gem, Plus, LogOut
+  Gem, Plus, LogOut, Bell
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getDashboardStats } from '../services/transactionService';
@@ -10,6 +10,7 @@ import type { DashboardStats } from '../types/pawnshop';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '../utils/toast';
+import { supabase } from '../lib/supabase';
 import { LanguageSwitcherDropdown } from '../components/LanguageSwitcher';
 import MetalRateWidget from '../components/admin/MetalRateWidget';
 
@@ -32,6 +33,7 @@ const PawnshopAdmin: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sendingNotifications, setSendingNotifications] = useState(false);
 
   // State for handling online request approvals
   const [selectedPawnRequest, setSelectedPawnRequest] = useState<any>(null); // Use proper type import if available
@@ -60,6 +62,26 @@ const PawnshopAdmin: React.FC = () => {
       console.error('Error loading dashboard:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSendMonthlyNotifications = async () => {
+    try {
+      setSendingNotifications(true);
+      toast.info('Sending monthly interest notifications...');
+
+      // Call the stored procedure via Supabase RPC
+      const { data, error } = await supabase.rpc('send_monthly_interest_notifications');
+
+      if (error) throw error;
+
+      toast.success('Monthly interest notifications sent successfully!');
+      console.log('Notifications sent:', data);
+    } catch (error: any) {
+      console.error('Error sending notifications:', error);
+      toast.error(error.message || 'Failed to send notifications');
+    } finally {
+      setSendingNotifications(false);
     }
   };
 
@@ -268,6 +290,17 @@ const PawnshopAdmin: React.FC = () => {
                   >
                     <Settings className="h-6 w-6 mx-auto mb-2" />
                     <span className="text-sm font-medium">{t('admin.masterData')}</span>
+                  </button>
+
+                  <button
+                    onClick={handleSendMonthlyNotifications}
+                    disabled={sendingNotifications}
+                    className="bg-gradient-to-r from-orange-600 to-orange-700 text-white p-4 rounded-lg hover:from-orange-700 hover:to-orange-800 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed col-span-2"
+                  >
+                    <Bell className={`h-6 w-6 mx-auto mb-2 ${sendingNotifications ? 'animate-pulse' : ''}`} />
+                    <span className="text-sm font-medium">
+                      {sendingNotifications ? 'Sending...' : 'Send Monthly Notifications'}
+                    </span>
                   </button>
                 </div>
               </div>

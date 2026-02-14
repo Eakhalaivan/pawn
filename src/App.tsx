@@ -1,5 +1,5 @@
 import { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -9,11 +9,11 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { WhatsAppButton } from './components/WhatsAppButton';
 
 // Lazy Load Pages
-const Jewelry = lazy(() => import('./pages/Jewelry'));
 const Pawn = lazy(() => import('./pages/Pawn'));
 const Admin = lazy(() => import('./pages/Admin'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Profile = lazy(() => import('./pages/Profile'));
+const Notifications = lazy(() => import('./pages/Notifications'));
 
 const LoadingFallback = () => (
   <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -33,7 +33,8 @@ function AppContent() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route path="/jewelry" element={<Jewelry />} />
+          {/* Redirect /jewelry to home page since it's now combined */}
+          <Route path="/jewelry" element={<Navigate to="/" replace />} />
           <Route path="/pawn" element={<Pawn />} />
           <Route
             path="/admin/login"
@@ -49,6 +50,7 @@ function AppContent() {
           />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/notifications" element={<Notifications />} />
         </Routes>
       </Suspense>
       <WhatsAppButton />

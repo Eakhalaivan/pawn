@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Gem, Scale, LogOut, User, ShoppingBag, Heart } from 'lucide-react';
+import { Gem, Scale, LogOut, User, ShoppingBag, Heart, Bell } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { CartDrawer } from './CartDrawer';
 import { WishlistDrawer } from './WishlistDrawer';
@@ -19,6 +19,7 @@ export default function Navbar() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [jewelryItems, setJewelryItems] = useState<JewelryItem[]>([]);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   useEffect(() => {
     // Get initial user state
@@ -50,6 +51,71 @@ export default function Navbar() {
     };
     fetchItems();
   }, []);
+
+  // Fetch unread notifications count
+  useEffect(() => {
+    if (!user) {
+      setUnreadNotifications(0);
+      return;
+    }
+
+    const fetchUnreadCount = async () => {
+      try {
+        const { data: customer } = await supabase
+          .from('customers')
+          .select('id')
+          .eq('id', user.id)
+          .single();
+
+        if (!customer) return;
+
+        const { count } = await supabase
+          .from('notifications')
+          .select('*', { count: 'exact', head: true })
+          .eq('customer_id', customer.id)
+          .eq('is_read', false);
+
+        setUnreadNotifications(count || 0);
+      } catch (error) {
+        console.error('Error fetching unread count:', error);
+      }
+    };
+
+    fetchUnreadCount();
+
+    // Real-time subscription for new notifications
+    const setupSubscription = async () => {
+      const { data: customer } = await supabase
+        .from('customers')
+        .select('id')
+        .eq('id', user.id)
+        .single();
+
+      if (!customer) return;
+
+      const subscription = supabase
+        .channel('navbar_notifications')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'notifications',
+            filter: `customer_id=eq.${customer.id}`
+          },
+          () => {
+            fetchUnreadCount();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        subscription.unsubscribe();
+      };
+    };
+
+    setupSubscription();
+  }, [user]);
 
   const handleSignOut = async () => {
     try {
@@ -103,6 +169,19 @@ export default function Navbar() {
               </span>
             )}
           </button>
+          {user && (
+            <Link
+              to="/notifications"
+              className="p-2 hover:bg-purple-700 rounded-lg relative transition-colors"
+            >
+              <Bell className="h-6 w-6" />
+              {unreadNotifications > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                  {unreadNotifications > 99 ? '99+' : unreadNotifications}
+                </span>
+              )}
+            </Link>
+          )}
           {!loading && (
             user ? (
               <div className="flex items-center space-x-4">

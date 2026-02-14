@@ -45,3 +45,18 @@ export type PawnRequest = {
   created_at: string;
   updated_at: string;
 };
+
+export type Notification = {
+  id: string;
+  customer_id: string;
+  notification_type: 'monthly_interest' | 'payment_reminder' | 'pledge_status' | 'general';
+  title: string;
+  message: string;
+  pledge_id: string | null;
+  interest_amount: number | null;
+  total_amount: number | null;
+  is_read: boolean;
+  sent_via_email: boolean;
+  email_sent_at: string | null;
+  created_at: string;
+};

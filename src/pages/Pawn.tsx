@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { supabase } from '../lib/supabase';
 import { PawnRequest } from '../lib/supabase';
 import Footer from '../components/Footer';
-import { Calculator, Scale, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Calculator, Scale, Clock, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 
 const Pawn: React.FC = () => {
   const [principal, setPrincipal] = useState<number>(1000);
@@ -25,6 +25,58 @@ const Pawn: React.FC = () => {
 
   useEffect(() => {
     fetchPawnRequests();
+
+    // Set up real-time subscription for pawn requests
+    let subscription: any;
+    let pollInterval: NodeJS.Timeout;
+
+    const setupSubscription = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.log('❌ No user found, skipping subscription');
+        return;
+      }
+
+      console.log('✅ Setting up real-time subscription for user:', user.id);
+
+      subscription = supabase
+        .channel('pawn_requests_changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'pawn_requests',
+            filter: `user_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('🔔 Pawn request updated:', payload);
+            // Refresh the list when any change occurs
+            fetchPawnRequests();
+          }
+        )
+        .subscribe((status) => {
+          console.log('📡 Subscription status:', status);
+        });
+    };
+
+    setupSubscription();
+
+    // Auto-refresh every 10 seconds as backup (in case real-time fails)
+    pollInterval = setInterval(() => {
+      console.log('🔄 Auto-refreshing pawn requests...');
+      fetchPawnRequests();
+    }, 10000); // 10 seconds
+
+    // Cleanup subscription and interval on unmount
+    return () => {
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
+    };
   }, []);
 
   const fetchPawnRequests = async () => {
@@ -310,9 +362,23 @@ const Pawn: React.FC = () => {
 
         {/* Pawn Requests History */}
         <div className="mt-8">
-          <div className="flex items-center mb-6">
-            <Clock className="h-8 w-8 text-purple-600 mr-3" />
-            <h2 className="text-2xl font-bold text-gray-900">Your Pawn Requests</h2>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center">
+              <Clock className="h-8 w-8 text-purple-600 mr-3" />
+              <h2 className="text-2xl font-bold text-gray-900">Your Pawn Requests</h2>
+            </div>
+            <button
+              onClick={() => {
+                setRequestsLoading(true);
+                fetchPawnRequests();
+              }}
+              disabled={requestsLoading}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-purple-600 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Refresh requests"
+            >
+              <RefreshCw className={`h-4 w-4 ${requestsLoading ? 'animate-spin' : ''}`} />
+              Refresh
+            </button>
           </div>
 
           {requestsLoading ? (
