@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Gem, Scale, Star, ShoppingCart, Eye, Heart, Sparkles, TrendingUp, Award, RefreshCw } from 'lucide-react';
+import { Gem, Scale, ShoppingCart, Eye, Heart, Sparkles, TrendingUp, Award, RefreshCw } from 'lucide-react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { JewelryItem } from '../lib/supabase';
@@ -9,7 +9,7 @@ import SeedButton from '../components/SeedButton';
 import { CheckoutModal } from '../components/CheckoutModal';
 import { ProductDetailsModal } from '../components/ProductDetailsModal';
 import LiveMetalRates from '../components/LiveMetalRates';
-import { TrustBadges } from '../components/TrustBadges';
+
 import { localJewelryItems } from '../utils/localData';
 import { useSearchParams } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
@@ -104,19 +104,6 @@ export default function Home() {
                 opacity: 0,
                 duration: 0.8,
                 stagger: 0.2,
-                ease: 'power3.out'
-            });
-
-            // Catalog header animation
-            gsap.from('.catalog-header', {
-                scrollTrigger: {
-                    trigger: catalogRef.current,
-                    start: 'top 80%',
-                    toggleActions: 'play none none reverse'
-                },
-                x: -100,
-                opacity: 0,
-                duration: 1,
                 ease: 'power3.out'
             });
 
@@ -398,7 +385,7 @@ export default function Home() {
             </motion.div>
 
             {/* Features Section */}
-            <div ref={featuresRef} className="relative bg-zinc-50 py-24 px-4 overflow-hidden">
+            <div ref={featuresRef} className="relative bg-zinc-50 py-16 px-4 overflow-hidden">
                 {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-[0.03]">
                     <div className="absolute inset-0" style={{
@@ -413,7 +400,7 @@ export default function Home() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.8 }}
-                        className="text-center mb-16"
+                        className="text-center mb-10"
                     >
                         <h2 className="text-4xl md:text-5xl font-serif font-bold text-gray-900 mb-4">
                             Why Choose <span className="text-yellow-600">Us</span>
@@ -492,9 +479,9 @@ export default function Home() {
             <div id="jewelry-collection" ref={catalogRef} className="min-h-screen bg-zinc-50">
                 <LiveMetalRates />
 
-                <div className="container mx-auto py-16 px-4">
+                <div className="container mx-auto py-8 px-4">
                     <motion.div
-                        className="catalog-header flex flex-col md:flex-row justify-between items-end mb-16 gap-6"
+                        className="catalog-header flex flex-col md:flex-row justify-between items-end mb-8 gap-6"
                         initial={{ opacity: 0, x: -50 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
@@ -514,7 +501,7 @@ export default function Home() {
 
                     {/* Filters */}
                     <motion.div
-                        className="mb-10 flex flex-col xl:flex-row gap-6 justify-between items-start xl:items-center"
+                        className="mb-6 flex flex-col xl:flex-row gap-6 justify-between items-start xl:items-center"
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
@@ -777,6 +764,6 @@ export default function Home() {
 
             <Footer />
             <SeedButton />
-        </div>
+        </div >
     );
 }
