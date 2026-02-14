@@ -182,6 +182,7 @@ export interface PledgeItem {
     quantity: number;
     item_value?: number;
     photo_url?: string;
+    purity_test_value?: string;
     created_at: string;
 }
 
@@ -343,6 +344,7 @@ export interface PledgeItemFormData {
     quantity: number;
     item_value?: number;
     photo_url?: string;
+    purity_test_value?: string;
 }
 
 export interface CustomerFormData {

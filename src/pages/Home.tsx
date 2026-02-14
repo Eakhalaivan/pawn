@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Gem, Scale, Star, ShoppingCart, Eye, Heart, Sparkles, TrendingUp, Award } from 'lucide-react';
+import { Gem, Scale, Star, ShoppingCart, Eye, Heart, Sparkles, TrendingUp, Award, RefreshCw } from 'lucide-react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { JewelryItem } from '../lib/supabase';
@@ -272,17 +272,16 @@ export default function Home() {
                 className="relative h-screen overflow-hidden bg-black"
                 style={{ opacity: heroOpacity }}
             >
-                {/* Animated Background */}
                 <motion.div
                     className="absolute inset-0"
                     style={{ scale: heroScale }}
                 >
                     <img
-                        src="https://images.unsplash.com/photo-1573408301185-9146fe634ad0?auto=format&fit=crop&w=2000&q=80"
-                        alt="Jewelry showcase"
-                        className="w-full h-full object-cover opacity-60"
+                        src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=2000&q=80"
+                        alt="High-end Jewelry Showcase"
+                        className="w-full h-full object-cover opacity-70"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-black/90" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/95 via-black/40 to-black/95" />
                 </motion.div>
 
                 {/* Floating Decorative Elements */}
@@ -543,7 +542,7 @@ export default function Home() {
 
                         <motion.div
                             className="flex flex-wrap gap-4 items-center bg-white p-2 pl-6 rounded-full border border-gray-200 shadow-sm w-full xl:w-auto"
-                            whileHover={{ shadow: "0 10px 30px -5px rgba(0, 0, 0, 0.05)" }}
+                            whileHover={{ boxShadow: "0 10px 30px -5px rgba(0, 0, 0, 0.05)" }}
                         >
                             {/* Search Bar */}
                             <div className="flex-1 min-w-[200px]">

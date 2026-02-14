@@ -7,7 +7,7 @@ import type { Customer, LoanType, Scheme, JewelleryType, PledgeItemFormData } fr
 import { toast } from '../../utils/toast';
 import { validateRequired, validatePositiveNumber } from '../../utils/validation';
 
-import { PawnRequest } from '../../lib/supabase';
+import { supabase, PawnRequest } from '../../lib/supabase';
 
 interface PledgeEntryFormProps {
     onSuccess?: () => void;
@@ -260,6 +260,22 @@ const PledgeEntryForm: React.FC<PledgeEntryFormProps> = ({ onSuccess, onCancel, 
                 notes: formData.notes || undefined,
                 items: formData.items
             });
+
+            // UPDATE online request status if applicable
+            if (initialPawnRequest) {
+                console.log('Updating pawn request status to approved for ID:', initialPawnRequest.id);
+                const { error: updateError } = await supabase
+                    .from('pawn_requests')
+                    .update({ status: 'approved' })
+                    .eq('id', initialPawnRequest.id);
+
+                if (updateError) {
+                    console.error('Error updating pawn request status:', updateError);
+                    toast.warning('Pledge created, but failed to update online request status.');
+                } else {
+                    console.log('Successfully updated online request status');
+                }
+            }
 
             toast.success(`Pledge ${newPledge.pledge_number} created successfully`);
             setLastPledgeId(newPledge.id);

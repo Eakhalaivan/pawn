@@ -27,54 +27,75 @@ const Pawn: React.FC = () => {
     fetchPawnRequests();
 
     // Set up real-time subscription for pawn requests
-    let subscription: any;
-    let pollInterval: NodeJS.Timeout;
+    let subscription: any = null;
+    let pollInterval: NodeJS.Timeout | null = null;
+    let retryTimeout: NodeJS.Timeout | null = null;
 
     const setupSubscription = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.log('❌ No user found, skipping subscription');
-        return;
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          console.log('❌ No user found, skipping subscription');
+          return;
+        }
+
+        console.log('✅ Setting up real-time subscription for user:', user.id);
+
+        // Cleanup existing if any
+        if (subscription) {
+          console.log('Cleaning up old subscription before retry...');
+          supabase.removeChannel(subscription);
+        }
+
+        subscription = supabase
+          .channel(`pawn_requests_user_${user.id}`) // Unique channel name per user
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'pawn_requests',
+              filter: `user_id=eq.${user.id}`
+            },
+            (payload) => {
+              console.log('🔔 Pawn request updated!', payload);
+              fetchPawnRequests();
+            }
+          )
+          .subscribe((status, err) => {
+            console.log(`📡 Subscription status for user ${user.id}:`, status);
+            if (err) console.error('🔴 Subscription error:', err);
+
+            if (status === 'CHANNEL_ERROR') {
+              console.warn('⚠️ Channel error detected, retrying in 5s...');
+              if (retryTimeout) clearTimeout(retryTimeout);
+              retryTimeout = setTimeout(setupSubscription, 5000);
+            }
+          });
+      } catch (err) {
+        console.error('Fatal error in subscription setup:', err);
       }
-
-      console.log('✅ Setting up real-time subscription for user:', user.id);
-
-      subscription = supabase
-        .channel('pawn_requests_changes')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'pawn_requests',
-            filter: `user_id=eq.${user.id}`
-          },
-          (payload) => {
-            console.log('🔔 Pawn request updated:', payload);
-            // Refresh the list when any change occurs
-            fetchPawnRequests();
-          }
-        )
-        .subscribe((status) => {
-          console.log('📡 Subscription status:', status);
-        });
     };
 
     setupSubscription();
 
     // Auto-refresh every 10 seconds as backup (in case real-time fails)
     pollInterval = setInterval(() => {
-      console.log('🔄 Auto-refreshing pawn requests...');
+      console.log('🔄 Auto-refreshing pawn requests (Heartbeat)...');
       fetchPawnRequests();
-    }, 10000); // 10 seconds
+    }, 10000);
 
     // Cleanup subscription and interval on unmount
     return () => {
+      console.log('🧹 Cleaning up Pawn.tsx effects...');
       if (subscription) {
-        subscription.unsubscribe();
+        supabase.removeChannel(subscription);
       }
       if (pollInterval) {
         clearInterval(pollInterval);
+      }
+      if (retryTimeout) {
+        clearTimeout(retryTimeout);
       }
     };
   }, []);
