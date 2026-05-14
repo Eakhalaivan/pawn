@@ -1,0 +1,21 @@
+{
+    "name": "RCB Jewelry's & Pawn Shop",
+    "short_name": "RCB Jewelry",
+    "description": "Premium Jewelry Collection and Pawn Services",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#6b21a8",
+    "icons": [
+        {
+            "src": "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=192&q=80",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=512&q=80",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
